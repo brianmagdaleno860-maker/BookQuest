@@ -87,16 +87,21 @@ if 'usuario_id' not in st.session_state:
                 except Exception as e:
                     st.error(f"Error: {e}") # Esto nos dirá qué falta exactamente
 
-# --- BOTÓN DE CERRAR SESIÓN (Ponlo justo después del selectbox del menú lateral) ---
-if st.sidebar.button("🚪 Salir de BookQuest"):
-    for key in list(st.session_state.keys()):
-        del st.session_state[key]
-    st.rerun()
+# --- SOLO MOSTRAR SI YA INICIÓ SESIÓN ---
+if 'usuario_id' in st.session_state:
+    # BOTÓN DE CERRAR SESIÓN
+    if st.sidebar.button("🚪 Salir de BookQuest"):
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
+        st.rerun()
 
-# --- MENÚ LATERAL ---
-st.sidebar.markdown(f"<h2 style='color:#0ff;'>🛡️ Nivel: {st.session_state['xp']} XP</h2>", unsafe_allow_html=True)
-opcion = st.sidebar.selectbox("Menú", ["📚 Biblioteca", "💬 Book-Talk", "👤 Mi Perfil", "🏆 Ranking", "🎮 Juegos","🛒Tienda"])
-
+    # MENÚ LATERAL (Aquí estaba el error)
+    # Usamos .get('xp', 0) para que si no hay XP, ponga 0 en lugar de dar error
+    xp_actual = st.session_state.get('xp', 0)
+    st.sidebar.markdown(f"<h2 style='color:#0ff;'>🛡️ Nivel: {xp_actual} XP</h2>", unsafe_allow_html=True)
+    
+    opcion = st.sidebar.selectbox("Menú", ["📚 Biblioteca", "💬 Book-Talk", "👤 Mi Perfil", "🏆 Ranking", "🎮 Juegos","🛒Tienda"])
+    
 # --- LÓGICA DE SECCIONES ---
 
 if opcion == "📚 Biblioteca":
