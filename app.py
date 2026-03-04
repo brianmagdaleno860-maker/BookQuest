@@ -89,38 +89,38 @@ if 'usuario_id' not in st.session_state:
 
 # --- SOLO MOSTRAR SI YA INICIÓ SESIÓN ---
 if 'usuario_id' in st.session_state:
-    # BOTÓN DE CERRAR SESIÓN
+    
+    # 1. El Botón de Salir en la barra lateral
     if st.sidebar.button("🚪 Salir de BookQuest"):
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
 
-    # MENÚ LATERAL (Aquí estaba el error)
-    # Usamos .get('xp', 0) para que si no hay XP, ponga 0 en lugar de dar error
+    # 2. El Menú Lateral (Aquí se define 'opcion')
     xp_actual = st.session_state.get('xp', 0)
     st.sidebar.markdown(f"<h2 style='color:#0ff;'>🛡️ Nivel: {xp_actual} XP</h2>", unsafe_allow_html=True)
     
     opcion = st.sidebar.selectbox("Menú", ["📚 Biblioteca", "💬 Book-Talk", "👤 Mi Perfil", "🏆 Ranking", "🎮 Juegos","🛒Tienda"])
-    
-# --- LÓGICA DE SECCIONES ---
 
-if opcion == "📚 Biblioteca":
-    st.markdown("<h1 class='neon-text'>📚 MI ESTANTERÍA MÁGICA</h1>", unsafe_allow_html=True)
-    
-    tab_explorar, tab_mis_libros = st.tabs(["🔍 Explorar Biblioteca", "🔖 Mis Lecturas"])
-
-    with tab_explorar:
-        try:
-            res_libros = supabase.table("libros").select("*").execute()
-            libros = res_libros.data
-        except:
-            libros = []
-
-        if not libros:
-            st.info("La biblioteca está esperando nuevos tomos...")
-        else:
-            cols = st.columns(3)
-            for idx, libro in enumerate(libros):
+    if opcion == "📚 Biblioteca":
+        st.markdown("<h1 class='neon-text'>📚 MI ESTANTERÍA MÁGICA</h1>", unsafe_allow_html=True)
+        tab_explorar, tab_mis_libros = st.tabs(["🔍 Explorar Biblioteca", "🔖 Mis Libros"])
+        
+        with tab_explorar:
+            try:
+                res_libros = supabase.table("libros").select("*").execute()
+                libros = res_libros.data
+                
+                if not libros:
+                    st.info("La biblioteca está esperando nuevos tomos...")
+                else:
+                    cols = st.columns(3)
+                    for idx, libro in enumerate(libros):
+                        with cols[idx % 3]:
+                            st.image(libro['portada_url'], use_container_width=True)
+                            st.subheader(libro['titulo'])
+            except Exception as e:
+                st.error(f"Error al cargar libros: {e}")
                 with cols[idx % 3]:
                     st.image(libro['portada_url'], use_container_width=True)
                     st.subheader(libro['titulo'])
