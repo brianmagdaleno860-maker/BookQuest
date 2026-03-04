@@ -47,57 +47,45 @@ if 'usuario_id' not in st.session_state:
 
     with tab_login:
         st.subheader("Ingresa a tu cuenta")
-        correo_log = st.text_input("Correo Institucional", key="log_email", placeholder="usuario@escuela.com")
+        correo_log = st.text_input("Correo Institucional", key="log_email")
         pass_log = st.text_input("Contraseña", type="password", key="log_pass")
         
         if st.button("INICIAR SESIÓN"):
-            if correo_log and pass_log:
-                # Buscamos al usuario
-                res = supabase.table("perfiles").select("*").eq("correo", correo_log).eq("contrasena", pass_log).execute()
-                
-                if res.data:
-                    user = res.data[0]
-                    st.session_state['usuario_id'] = user['id']
-                    st.session_state['nombre'] = user['nombre']
-                    st.session_state['xp'] = user['xp']
-                    st.success(f"¡Qué onda, {user['nombre']}! Entrando...")
-                    time.sleep(1)
-                    st.rerun()
-                else:
-                    st.error("Correo o contraseña no coinciden. ¿Ya te registraste?")
+            # CAMBIO: Usamos 'email' en lugar de 'correo' como dice tu tabla
+            res = supabase.table("perfiles").select("*").eq("email", correo_log).eq("contrasena", pass_log).execute()
+            
+            if res.data:
+                user = res.data[0]
+                st.session_state['usuario_id'] = user['id']
+                st.session_state['nombre'] = user['nombre']
+                st.session_state['xp'] = user['xp']
+                st.success(f"¡Qué onda, {user['nombre']}!")
+                st.rerun()
             else:
-                st.warning("Escribe tus datos, no seas flojo.")
+                st.error("Datos incorrectos.")
 
     with tab_registro:
         st.subheader("Crea tu perfil de héroe")
-        nuevo_nombre = st.text_input("¿Cómo quieres que te llamen?", key="reg_name", placeholder="Ej: LectorPro_99")
-        nuevo_correo = st.text_input("Correo Institucional", key="reg_email", placeholder="tucorreo@escuela.com")
-        nuevo_pass = st.text_input("Crea una contraseña segura", type="password", key="reg_pass")
-        confirm_pass = st.text_input("Repite la contraseña", type="password", key="reg_pass_conf")
+        nuevo_nombre = st.text_input("Nombre de usuario", key="reg_name")
+        nuevo_correo = st.text_input("Correo Institucional", key="reg_email")
+        nuevo_pass = st.text_input("Contraseña", type="password", key="reg_pass")
 
         if st.button("REGISTRARME Y ABRIR COFRE 🎁"):
             if nuevo_nombre and nuevo_correo and nuevo_pass:
-                if nuevo_pass == confirm_pass:
-                    # Datos iniciales
-                    nuevo_user = {
-                        "nombre": nuevo_nombre,
-                        "correo": nuevo_correo,
-                        "contrasena": nuevo_pass,
-                        "xp": 50, # Recompensa del cofre de bienvenida
-                        "racha_personal": 0
-                    }
-                    try:
-                        supabase.table("perfiles").insert(nuevo_user).execute()
-                        st.balloons()
-                        st.success("¡CUENTA CREADA! 🎉 Recibiste 50 XP de bienvenida. Ahora inicia sesión.")
-                    except:
-                        st.error("Ese correo ya está registrado o el nombre ya existe.")
-                else:
-                    st.error("Las contraseñas no son iguales, chécale bien.")
-            else:
-                st.warning("Llena todos los campos para darte tu premio de bienvenida.")
-
-    st.stop() # Detiene la app hasta que se logueen
+                # CAMBIO: Nombres exactos de tus columnas en Supabase
+                nuevo_user = {
+                    "nombre": nuevo_nombre,
+                    "email": nuevo_correo,      # Antes decía 'correo'
+                    "contrasena": nuevo_pass,   # Asegúrate que esta columna exista en Supabase
+                    "xp": 50,
+                    "racha": 0
+                }
+                try:
+                    supabase.table("perfiles").insert(nuevo_user).execute()
+                    st.balloons()
+                    st.success("¡LISTO! Ahora ya puedes entrar en la pestaña 'Entrar'.")
+                except Exception as e:
+                    st.error(f"Error: {e}") # Esto nos dirá qué falta exactamente
 
 # --- BOTÓN DE CERRAR SESIÓN (Ponlo justo después del selectbox del menú lateral) ---
 if st.sidebar.button("🚪 Salir de BookQuest"):
